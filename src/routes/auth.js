@@ -7,7 +7,8 @@ router.post('/', (req, res) => {
   if (!password || password !== global.serverPassword) {
     return res.status(401).json({ error: 'Invalid password' });
   }
-  const token = jwt.sign({ authorized: true }, process.env.JWT_SECRET, { expiresIn: '2h' });
+  const hours = Math.max(0.5, Number(process.env.SESSION_HOURS) || 2);
+  const token = jwt.sign({ authorized: true }, process.env.JWT_SECRET, { expiresIn: `${hours}h` });
   res.json({ token });
 });
 
