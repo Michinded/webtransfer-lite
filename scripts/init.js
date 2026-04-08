@@ -22,4 +22,4 @@ const result = example.replace('JWT_SECRET=', `JWT_SECRET=${secret}`);
 
 fs.writeFileSync(envFile, result);
 console.log('✓ .env created with generated JWT_SECRET');
-console.log('  Edit PORT or UPLOADS_DIR if needed, then run: pnpm start');
+console.log('  Edit PORT or UPLOADS_DIR if needed, then run: pnpm start for production or pnpm dev for development.');
