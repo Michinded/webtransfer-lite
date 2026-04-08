@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebTransfer Lite</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-light: #eef2ff;
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --muted: #64748b;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --success: #10b981;
+      --radius: 14px;
+      --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── AUTH SCREEN ────────────────────────── */
+    #auth-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    .auth-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+
+    .auth-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--primary-light);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+    }
+
+    .auth-card h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: .35rem;
+    }
+
+    .auth-card p {
+      color: var(--muted);
+      font-size: .9rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .input-wrap {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      padding: .75rem 1rem;
+      font-size: 1.1rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+      text-align: center;
+      transition: border-color .15s;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    .input-wrap input:focus { border-color: var(--primary); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .45rem;
+      padding: .72rem 1.4rem;
+      border-radius: 10px;
+      border: none;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, transform .1s, opacity .15s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      width: 100%;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1.5px solid var(--border);
+      padding: .5rem .85rem;
+      font-size: .82rem;
+    }
+    .btn-ghost:hover { background: var(--bg); color: var(--text); }
+
+    .btn-icon {
+      background: transparent;
+      color: var(--muted);
+      padding: .4rem;
+      border-radius: 8px;
+      border: none;
+    }
+    .btn-icon:hover { background: var(--bg); color: var(--text); }
+    .btn-icon.danger:hover { background: var(--danger-light); color: var(--danger); }
+
+    .error-msg {
+      font-size: .83rem;
+      color: var(--danger);
+      margin-top: .5rem;
+      min-height: 1.1em;
+    }
+
+    /* ── MAIN SCREEN ────────────────────────── */
+    #main-screen { display: none; min-height: 100vh; }
+
+    /* Nav */
+    .nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: .85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .nav-brand .dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .4; }
+    }
+
+    .nav-spacer { flex: 1; }
+
+    .session-badge {
+      font-size: .78rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+    }
+
+    /* Main content */
+    .content {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Upload zone */
+    .upload-zone {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .upload-zone.drag-over .upload-icon { transform: scale(1.12); }
+
+    .upload-icon {
+      margin: 0 auto .9rem;
+      color: var(--primary);
+      transition: transform .2s;
+    }
+
+    .upload-zone h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: .3rem;
+    }
+
+    .upload-zone p {
+      font-size: .85rem;
+      color: var(--muted);
+    }
+
+    #file-input { display: none; }
+
+    /* Progress */
+    .progress-wrap {
+      display: none;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    .progress-wrap.visible { display: flex; }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: .82rem;
+      color: var(--muted);
+    }
+
+    .progress-bar-bg {
+      height: 6px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 99px;
+      width: 0%;
+      transition: width .2s;
+    }
+
+    /* Files section */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .file-count {
+      font-size: .8rem;
+      color: var(--muted);
+      background: var(--bg);
+      padding: .2rem .6rem;
+      border-radius: 99px;
+    }
+
+    /* File list */
+    .file-list {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .file-empty {
+      padding: 3rem 1rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: .9rem;
+      padding: .9rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      transition: background .1s;
+    }
+
+    .file-item:last-child { border-bottom: none; }
+    .file-item:hover { background: var(--bg); }
+
+    .file-ext {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .65rem;
+      font-weight: 700;
+      font-family: 'SF Mono', monospace;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      letter-spacing: .03em;
+    }
+
+    .file-info { flex: 1; min-width: 0; }
+
+    .file-name {
+      font-size: .9rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-meta {
+      font-size: .77rem;
+      color: var(--muted);
+      margin-top: .15rem;
+    }
+
+    .file-actions {
+      display: flex;
+      gap: .25rem;
+      flex-shrink: 0;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(1rem);
+      background: var(--text);
+      color: #fff;
+      padding: .65rem 1.2rem;
+      border-radius: 99px;
+      font-size: .85rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity .2s, transform .2s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 100;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Loading spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255,255,255,.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .nav { padding: .75rem 1rem; }
+      .content { padding: 1.25rem .75rem; gap: 1.1rem; }
+      .upload-zone { padding: 2rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+    </div>
+    <h1>WebTransfer Lite</h1>
+    <p>Enter the password shown in the server terminal</p>
+    <div class="input-wrap">
+      <input id="password-input" type="text" placeholder="XXXXXX" maxlength="6" autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="error-msg" id="auth-error"></div>
+    <br />
+    <button class="btn btn-primary" id="connect-btn" onclick="doAuth()">
+      Connect
+    </button>
+  </div>
+</div>
+
+<!-- MAIN SCREEN -->
+<div id="main-screen">
+  <nav class="nav">
+    <div class="nav-brand">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      WebTransfer Lite
+      <span class="dot"></span>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="session-badge">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span id="session-timer">--:--</span>
+    </div>
+    <button class="btn btn-ghost" onclick="logout()">Disconnect</button>
+  </nav>
+
+  <div class="content">
+    <!-- Upload zone -->
+    <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <div class="upload-icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <h3>Drop files here or click to browse</h3>
+      <p>Multiple files supported &mdash; no size limit</p>
+      <input type="file" id="file-input" multiple />
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-info">
+        <span id="progress-label">Uploading...</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- File list -->
+    <div>
+      <div class="section-header" style="margin-bottom:.75rem">
+        <h2>Files on server</h2>
+        <span class="file-count" id="file-count">0 files</span>
+      </div>
+      <div class="file-list" id="file-list">
+        <div class="file-empty">No files yet. Upload something!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+  const TOKEN_KEY = 'wt_token';
+  let token = null;
+
+  // ── Helpers ─────────────────────────────────
+  function fmtSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+    return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+  }
+
+  function fmtDate(iso) {
+    const d = new Date(iso);
+    const now = new Date();
+    const diff = now - d;
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+    return d.toLocaleDateString();
+  }
+
+  function getExt(name) {
+    const parts = name.split('.');
+    return parts.length > 1 ? parts.pop().slice(0, 4) : '?';
+  }
+
+  function extColor(ext) {
+    const map = {
+      pdf: '#ef4444', doc: '#3b82f6', docx: '#3b82f6',
+      xls: '#10b981', xlsx: '#10b981', csv: '#10b981',
+      jpg: '#f59e0b', jpeg: '#f59e0b', png: '#f59e0b', gif: '#f59e0b', webp: '#f59e0b', svg: '#f59e0b',
+      mp4: '#8b5cf6', mov: '#8b5cf6', avi: '#8b5cf6', mkv: '#8b5cf6',
+      mp3: '#ec4899', wav: '#ec4899', flac: '#ec4899',
+      zip: '#6366f1', rar: '#6366f1', gz: '#6366f1', '7z': '#6366f1',
+      js: '#f59e0b', ts: '#3b82f6', html: '#ef4444', css: '#3b82f6', json: '#10b981',
+    };
+    return map[ext.toLowerCase()] || '#6366f1';
+  }
+
+  function showToast(msg, duration = 2500) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), duration);
+  }
+
+  function decodeToken(t) {
+    try { return JSON.parse(atob(t.split('.')[1])); } catch { return null; }
+  }
+
+  // ── Session timer ────────────────────────────
+  function startSessionTimer(exp) {
+    const el = document.getElementById('session-timer');
+    function tick() {
+      const rem = Math.max(0, exp * 1000 - Date.now());
+      if (rem === 0) { logout(); return; }
+      const m = String(Math.floor(rem / 60000)).padStart(2, '0');
+      const s = String(Math.floor((rem % 60000) / 1000)).padStart(2, '0');
+      el.textContent = `${m}:${s}`;
+    }
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  // ── Auth ─────────────────────────────────────
+  function saveToken(t) {
+    token = t;
+    localStorage.setItem(TOKEN_KEY, t);
+  }
+
+  function logout() {
+    token = null;
+    localStorage.removeItem(TOKEN_KEY);
+    document.getElementById('main-screen').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('password-input').value = '';
+    document.getElementById('auth-error').textContent = '';
+  }
+
+  async function doAuth() {
+    const pwd = document.getElementById('password-input').value.trim().toUpperCase();
+    const btn = document.getElementById('connect-btn');
+    const errEl = document.getElementById('auth-error');
+
+    if (!pwd) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>';
+    errEl.textContent = '';
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwd }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      saveToken(data.token);
+      showMain();
+    } catch (e) {
+      errEl.textContent = e.message;
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Connect';
+    }
+  }
+
+  function showMain() {
+    const payload = decodeToken(token);
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-screen').style.display = 'block';
+    if (payload?.exp) startSessionTimer(payload.exp);
+    loadFiles();
+  }
+
+  // ── API helper ───────────────────────────────
+  async function api(method, url, body) {
+    const opts = {
+      method,
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    if (body) opts.body = body;
+    const res = await fetch(url, opts);
+    if (res.status === 401) { logout(); throw new Error('Session expired'); }
+    return res;
+  }
+
+  // ── Files ────────────────────────────────────
+  async function loadFiles() {
+    try {
+      const res = await api('GET', '/api/files');
+      const files = await res.json();
+      renderFiles(files);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderFiles(files) {
+    const list = document.getElementById('file-list');
+    const count = document.getElementById('file-count');
+    count.textContent = files.length === 1 ? '1 file' : `${files.length} files`;
+
+    if (!files.length) {
+      list.innerHTML = '<div class="file-empty">No files yet. Upload something!</div>';
+      return;
+    }
+
+    list.innerHTML = files.map(f => {
+      const ext = getExt(f.name);
+      const color = extColor(ext);
+      return `
+        <div class="file-item">
+          <div class="file-ext" style="background:${color}18;color:${color}">${ext}</div>
+          <div class="file-info">
+            <div class="file-name" title="${f.name}">${f.name}</div>
+            <div class="file-meta">${fmtSize(f.size)} &middot; ${fmtDate(f.modified)}</div>
+          </div>
+          <div class="file-actions">
+            <button class="btn btn-icon" title="Download" onclick="downloadFile('${encodeURIComponent(f.name)}')">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </button>
+            <button class="btn btn-icon danger" title="Delete" onclick="deleteFile('${encodeURIComponent(f.name)}', this)">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/>
+                <path d="M9 6V4h6v2"/>
+              </svg>
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function downloadFile(encodedName) {
+    const a = document.createElement('a');
+    a.href = `/api/files/download/${encodedName}?token=${token}`;
+    a.download = '';
+    // Pass token via header is not possible for direct link downloads — use query param trick
+    // Server needs to accept token from query for downloads
+    a.click();
+  }
+
+  async function deleteFile(encodedName, btn) {
+    btn.disabled = true;
+    try {
+      await api('DELETE', `/api/files/${encodedName}`);
+      showToast('File deleted');
+      loadFiles();
+    } catch (e) {
+      showToast(e.message);
+      btn.disabled = false;
+    }
+  }
+
+  // ── Upload ───────────────────────────────────
+  function uploadFiles(files) {
+    if (!files.length) return;
+    const formData = new FormData();
+    for (const f of files) formData.append('files', f);
+
+    const wrap = document.getElementById('progress-wrap');
+    const fill = document.getElementById('progress-fill');
+    const label = document.getElementById('progress-label');
+    const pct = document.getElementById('progress-pct');
+
+    const names = files.length === 1 ? files[0].name : `${files.length} files`;
+    label.textContent = `Uploading ${names}...`;
+    fill.style.width = '0%';
+    pct.textContent = '0%';
+    wrap.classList.add('visible');
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener('progress', e => {
+      if (e.lengthComputable) {
+        const p = Math.round(e.loaded / e.total * 100);
+        fill.style.width = p + '%';
+        pct.textContent = p + '%';
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      wrap.classList.remove('visible');
+      if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+        showToast(`Uploaded: ${data.uploaded.map(f => f.name).join(', ')}`);
+        loadFiles();
+      } else if (xhr.status === 401) {
+        logout();
+      } else {
+        showToast('Upload failed');
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      wrap.classList.remove('visible');
+      showToast('Upload error');
+    });
+
+    xhr.open('POST', '/api/files/upload');
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.send(formData);
+  }
+
+  // ── Drag & drop ──────────────────────────────
+  const dropZone = document.getElementById('drop-zone');
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    uploadFiles([...e.dataTransfer.files]);
+  });
+
+  document.getElementById('file-input').addEventListener('change', e => {
+    uploadFiles([...e.target.files]);
+    e.target.value = '';
+  });
+
+  // ── Password input UX ────────────────────────
+  document.getElementById('password-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doAuth();
+  });
+
+  document.getElementById('password-input').addEventListener('input', e => {
+    e.target.value = e.target.value.toUpperCase();
+  });
+
+  // ── Download with token support ──────────────
+  // Override fetch for downloads — server checks Authorization header OR ?token= query
+  // (The download function uses ?token= so we need server support, handled in files route)
+
+  // ── Boot ─────────────────────────────────────
+  (function init() {
+    // QR scan: token comes as URL query param
+    const params = new URLSearchParams(location.search);
+    const urlToken = params.get('token');
+    if (urlToken) {
+      saveToken(urlToken);
+      history.replaceState({}, '', '/');
+    }
+
+    const stored = localStorage.getItem(TOKEN_KEY);
+    if (stored) {
+      const payload = decodeToken(stored);
+      if (payload && payload.exp * 1000 > Date.now()) {
+        token = stored;
+        showMain();
+        return;
+      }
+      localStorage.removeItem(TOKEN_KEY);
+    }
+    // Show auth
+    document.getElementById('auth-screen').style.display = 'flex';
+  })();
+</script>
+</body>
+</html>
