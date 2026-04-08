@@ -1,13 +1,13 @@
 {
   "name": "webtransfer-lite",
   "version": "1.0.0",
-  "description": "",
+  "description": "Lightweight local file transfer server over LAN with JWT authentication and QR code access.",
   "main": "index.js",
   "scripts": {
     "init": "node scripts/init.js",
     "dev": "nodemon index.js",
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "check": "node scripts/check.js"
   },
   "keywords": [],
   "author": "",
