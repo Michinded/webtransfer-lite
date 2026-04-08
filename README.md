@@ -2,6 +2,8 @@
 
 Lightweight local file transfer server for LAN networks. Secured with JWT authentication, accessible via password or QR code, with configurable session duration and automatic shutdown.
 
+> **📘 Documentation**: Need more details? Check out the [full documentation](https://www.mintlify.com/Michinded/webtransfer-lite) generated with Mintlify.
+
 ## Requirements
 
 - Node.js 18+

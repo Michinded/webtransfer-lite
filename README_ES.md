@@ -2,6 +2,8 @@
 
 Servidor local para transferir archivos entre dispositivos en la misma red LAN. Requiere autenticación por contraseña o QR, con sesiones de duración configurable.
 
+> **📘 Documentación**: ¿Necesitas más detalles? Consulta la [documentación completa](https://www.mintlify.com/Michinded/webtransfer-lite) generada con Mintlify.
+
 ## Requisitos
 
 - Node.js 18+
