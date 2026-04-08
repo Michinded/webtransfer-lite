@@ -58,14 +58,30 @@ if (isNaN(hours) || hours < 0.5) {
   else pass(`SESSION_HOURS=${hours}`);
 }
 
-// UPLOADS_DIR
-const uploadsDir = path.resolve(root, env.UPLOADS_DIR || 'uploads');
+// MAX_FILE_SIZE_MB
+const maxMB = Number(env.MAX_FILE_SIZE_MB ?? 0);
+if (isNaN(maxMB) || maxMB < 0) {
+  fail(`MAX_FILE_SIZE_MB=${env.MAX_FILE_SIZE_MB} is invalid — must be a number >= 0 (0 = unlimited)`);
+} else if (maxMB === 0) {
+  warn('MAX_FILE_SIZE_MB=0 — no file size limit enforced');
+} else {
+  pass(`MAX_FILE_SIZE_MB=${maxMB} (${maxMB >= 1024 ? (maxMB / 1024).toFixed(1) + ' GB' : maxMB + ' MB'} per file)`);
+}
+
+// UPLOADS_DIR — path.resolve handles macOS, Linux and Windows paths (C:\..., \\server\share, /mnt/...)
+const uploadsDir = path.resolve(env.UPLOADS_DIR || 'uploads');
 try {
   fs.mkdirSync(uploadsDir, { recursive: true });
   fs.accessSync(uploadsDir, fs.constants.W_OK);
   pass(`UPLOADS_DIR writable (${uploadsDir})`);
-} catch {
-  fail(`UPLOADS_DIR not writable: ${uploadsDir}`);
+} catch (e) {
+  if (e.code === 'ENOENT') {
+    fail(`UPLOADS_DIR path does not exist and could not be created: ${uploadsDir}`);
+  } else if (e.code === 'EACCES') {
+    fail(`UPLOADS_DIR exists but is not writable: ${uploadsDir}`);
+  } else {
+    fail(`UPLOADS_DIR error (${e.code}): ${uploadsDir}`);
+  }
 }
 
 // Summary

@@ -21,7 +21,18 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+const maxMB = Number(process.env.MAX_FILE_SIZE_MB) || 0;
+const upload = multer({
+  storage,
+  ...(maxMB > 0 && { limits: { fileSize: maxMB * 1024 * 1024 } }),
+});
+
+function handleUploadError(err, req, res, next) {
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ error: `File too large. Maximum allowed: ${maxMB} MB` });
+  }
+  next(err);
+}
 
 // List files
 router.get('/', (req, res) => {
@@ -42,7 +53,7 @@ router.post('/upload', upload.array('files'), (req, res) => {
     return res.status(400).json({ error: 'No files received' });
   }
   res.json({ uploaded: req.files.map(f => ({ name: f.filename, size: f.size })) });
-});
+}, handleUploadError);
 
 // Download
 router.get('/download/:filename', (req, res) => {
