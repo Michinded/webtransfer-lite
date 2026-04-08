@@ -30,11 +30,16 @@ pnpm start       # arranca el servidor
 Edita `.env` (generado por `pnpm run init`) para personalizar:
 
 ```env
-JWT_SECRET=       # generado automáticamente, no modificar
-PORT=3000         # puerto del servidor
-UPLOADS_DIR=uploads  # carpeta donde se guardan los archivos
-SESSION_HOURS=2   # duración de la sesión (mínimo 0.5)
+JWT_SECRET=           # generado automáticamente, no modificar
+PORT=3000             # puerto del servidor
+UPLOADS_DIR=uploads   # carpeta donde se guardan los archivos (ver nota)
+SESSION_HOURS=2       # duración de la sesión en horas (mínimo 0.5)
+MAX_FILE_SIZE_MB=0    # tamaño máximo por archivo en MB — 0 significa sin límite
 ```
+
+**`UPLOADS_DIR`** acepta rutas absolutas o relativas y funciona en macOS, Linux y Windows (incluyendo `C:\Users\...` y rutas UNC `\\servidor\carpeta`). Si la ruta no existe, el servidor la crea automáticamente. Ejecuta `pnpm run check` para verificar que la ruta sea accesible antes de arrancar.
+
+**`MAX_FILE_SIZE_MB`** — los archivos siempre se escriben en disco por streaming, por lo que transferencias grandes nunca saturan la RAM independientemente de este valor. Usa un límite para proteger el espacio en disco; déjalo en `0` para no restringir.
 
 ## Uso
 

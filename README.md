@@ -30,11 +30,16 @@ pnpm start       # starts the server
 Edit `.env` after running `pnpm run init`:
 
 ```env
-JWT_SECRET=       # auto-generated — do not change
-PORT=3000         # server port
-UPLOADS_DIR=uploads  # folder where uploaded files are stored
-SESSION_HOURS=2   # session duration in hours (minimum 0.5)
+JWT_SECRET=           # auto-generated — do not change
+PORT=3000             # server port
+UPLOADS_DIR=uploads   # folder where uploaded files are stored (see note below)
+SESSION_HOURS=2       # session duration in hours (minimum 0.5)
+MAX_FILE_SIZE_MB=0    # max size per file in MB — 0 means unlimited
 ```
+
+**`UPLOADS_DIR`** accepts any absolute or relative path and works on macOS, Linux, and Windows (including `C:\Users\...` and UNC paths `\\server\share`). If the path doesn't exist, the server creates it automatically. Run `pnpm run check` to verify the path is accessible before starting.
+
+**`MAX_FILE_SIZE_MB`** — files are always streamed directly to disk, so large transfers never saturate RAM regardless of this setting. Set a value to protect disk space; leave at `0` for no limit.
 
 ## How it works
 
